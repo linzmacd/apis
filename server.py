@@ -42,7 +42,15 @@ def find_afterparties():
     sort = request.args.get('sort', '')
 
     url = 'https://app.ticketmaster.com/discovery/v2/events'
-    payload = {'apikey': API_KEY}
+    payload = {'apikey': API_KEY, 
+               'keyword': keyword, 
+               'postalCode': postalcode, 
+               'radius': radius, 
+               'unit': unit, 
+               'sort': sort}
+
+    res = requests.get(url, params=payload)
+
 
     # TODO: Make a request to the Event Search endpoint to search for events
     #
@@ -55,10 +63,16 @@ def find_afterparties():
     # - Replace the empty list in `events` with the list of events from your
     #   search results
 
-    data = {'Test': ['This is just some test data'],
-            'page': {'totalElements': 1}}
-    events = []
+    # data = {'Test': ['This is just some test data'],
+    #         'page': {'totalElements': 1}}
+    # events = [] 
 
+    data = res.json()
+    try:
+        events = data['_embedded']['events']
+    except:
+        events = []
+         
     return render_template('search-results.html',
                            pformat=pformat,
                            data=data,
@@ -76,7 +90,32 @@ def get_event_details(id):
 
     # TODO: Finish implementing this view function
 
-    return render_template('event-details.html')
+    url = f'https://app.ticketmaster.com/discovery/v2/events/{id}'
+    
+    payload = {'apikey': API_KEY}
+
+    res = requests.get(url, params=payload)
+    data = res.json()
+    
+    name = data['name']
+    # description =  
+    image = data['images'][0]['url']
+    url = data['url']
+    start_date = data['dates']['start']['localDate']
+    list_venues = data['_embedded']['venues']
+    clean_list_venues = []
+    for venue in list_venues:
+        clean_list_venues += [venue['name']]
+    # list_classification = 
+    # venue['city']['name']
+
+    return render_template('event-details.html',
+                           name=name,
+                           image=image, 
+                           url=url,
+                           start_date=start_date,
+                           list_venues=clean_list_venues
+                           )
 
 
 if __name__ == '__main__':
