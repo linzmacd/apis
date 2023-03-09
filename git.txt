@@ -1,1 +1,4 @@
 Adding a txt file to test advanced git commands.
+
+
+Testing git merge on main.
